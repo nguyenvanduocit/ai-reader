@@ -20,7 +20,20 @@ onMounted(() => {
 
   });
 
+  rendition.on("relocated", (location: any) => {
+    console.log(location)
+  });
+
   rendition.on("selected", function (cfiRange: string, contents: Contents) {
+    if (!contents.window) {
+      return
+    }
+
+    if (contents.window.getSelection()?.toString() === "") {
+      selectedText.value = undefined
+      return
+    }
+
     selectedText.value = contents.window.getSelection()?.toString()
   });
 })
