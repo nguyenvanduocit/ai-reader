@@ -9,6 +9,14 @@ const book = Epub("/books/Machine Learning for Designers (Patrick Hebron) (Z-Lib
 let rendition: Rendition | undefined
 const selectedText = ref<string>()
 
+import { OpenAI } from "langchain/llms/openai";
+import {ChatOpenAI} from "langchain/dist/chat_models/openai";
+
+const llm = new OpenAI({
+  openAIApiKey: "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",
+});
+const chatModel = new ChatOpenAI();
+
 onMounted(() => {
   rendition = book.renderTo(renderContainer.value!, {
     snap: true,
@@ -24,7 +32,7 @@ onMounted(() => {
     console.log(location)
   });
 
-  rendition.on("selected", function (cfiRange: string, contents: Contents) {
+  rendition.on("selected", async function (cfiRange: string, contents: Contents) {
     if (!contents.window) {
       return
     }
@@ -34,7 +42,12 @@ onMounted(() => {
       return
     }
 
-    selectedText.value = contents.window.getSelection()?.toString()
+
+    const text = "Translate this text into Vietnamese: " + contents.window.getSelection()?.toString()
+
+    const llmResult = await llm.predict(text);
+
+    selectedText.value = llmResult
   });
 })
 
