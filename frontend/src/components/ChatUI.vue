@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { llm } from '../services/llm'
-import { LLMResult } from 'langchain/schema'
-import { Serialized } from 'langchain/dist/load/serializable'
+import { HumanMessage, LLMResult, SystemMessage } from 'langchain/schema'
 import { Mdit } from '../services/mdit'
 
 const isStreaming = ref(false)
@@ -35,20 +34,12 @@ const callPredict = (prompt: string) => {
   }
 
   controller = new AbortController()
-
-  llm.predict(prompt, {
+  const questions = [new SystemMessage('You are the book thor, help user to understand the book.'), new HumanMessage(prompt)]
+  llm.call(questions, {
     signal: controller?.signal,
     callbacks: [
       {
-        handleLLMStart(
-          llm: Serialized,
-          prompts: string[],
-          runId: string,
-          parentRunId?: string,
-          extraParams?: Record<string, unknown>,
-          tags?: string[],
-          metadata?: Record<string, unknown>
-        ): Promise<void> | void {
+        handleLLMStart(): Promise<void> | void {
           output.value = ''
           isStreaming.value = true
         },
