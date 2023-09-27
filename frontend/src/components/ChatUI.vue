@@ -4,7 +4,9 @@ import { llm } from '../services/llm'
 import { LLMResult } from 'langchain/schema'
 import { Serialized } from 'langchain/dist/load/serializable'
 import { Mdit } from '../services/mdit'
+
 const isStreaming = ref(false)
+let controller: AbortController | undefined
 const props = defineProps({
   selectedText: {
     type: String,
@@ -28,7 +30,14 @@ const canSubmit = computed(() => {
 const callPredict = (prompt: string) => {
   console.log(prompt)
   output.value = 'Translating...'
+  if (controller?.signal.aborted) {
+    controller.abort()
+  }
+
+  controller = new AbortController()
+
   llm.predict(prompt, {
+    signal: controller?.signal,
     callbacks: [
       {
         handleLLMStart(
@@ -66,7 +75,7 @@ const translate = () => {
 }
 
 const explain = () => {
-  callPredict('Act like the author of the book "' + props.title + '". explain the following quote: ' + props.selectedText)
+  callPredict('Act like the author of the book "' + props.title + '". I do not understand the following quote, explain it to me in a simpler way: ' + props.selectedText)
 }
 
 const giveOpinion = () => {
@@ -76,15 +85,25 @@ const giveOpinion = () => {
 const summary = () => {
   callPredict('Act like the author of the book "' + props.title + '". Summarize the following quote, make it shorter, easier to understand: ' + props.selectedText)
 }
+
+const cancelRequest = () => {
+  controller?.abort()
+  controller = undefined
+  isStreaming.value = false
+}
 </script>
 
 <template>
   <div :class="$style.container">
-    <ElButtonGroup v-loading="isStreaming" :class="$style.controllers">
+    <el-progress :percentage="50" :show-text="false" :indeterminate="true" v-show="isStreaming" />
+    <ElButtonGroup :class="$style.controllers" v-show="!isStreaming">
       <ElButton :disabled="!canSubmit" @click.prevent="translate">Translate</ElButton>
       <ElButton :disabled="!canSubmit" @click.prevent="explain">Explain</ElButton>
       <ElButton :disabled="!canSubmit" @click.prevent="summary">Summary</ElButton>
       <ElButton :disabled="!canSubmit" @click.prevent="giveOpinion">Deep dive</ElButton>
+    </ElButtonGroup>
+    <ElButtonGroup :class="$style.controllers" v-show="isStreaming">
+      <ElButton @click.prevent="cancelRequest">cancel</ElButton>
     </ElButtonGroup>
     <ElText tag="div" :class="$style.output" v-html="outputHtml"></ElText>
   </div>
@@ -94,10 +113,15 @@ const summary = () => {
 .container
   height: 100%
   padding: 10px
+  :global(.el-progress--line)
+    width: 100%
 .controllers
   margin-bottom: 10px
+  width: 100%
+
 .output
   word-break: break-word
+
   :global(p)
     padding: 0
     margin: 0 0 25px

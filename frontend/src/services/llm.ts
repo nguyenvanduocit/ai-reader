@@ -5,5 +5,6 @@ import { ChatOpenAI } from 'langchain/chat_models/openai'
 export const llm = new ChatOpenAI({
   maxTokens: 2000,
   streaming: true,
-  openAIApiKey: import.meta.env.VITE_OPENAI_KEY
+  openAIApiKey: import.meta.env.VITE_OPENAI_KEY,
+  cache: true
 })
