@@ -1,0 +1,9 @@
+# https://taskfile.dev
+
+version: '3'
+env:
+  VITE_GOOGLE_PALM_API_KEY: AIzaSyAzoRjmpgzWLj2qlDWuFlpFnQ_WSaY-DDM
+tasks:
+  default:
+    cmds:
+      - wails dev

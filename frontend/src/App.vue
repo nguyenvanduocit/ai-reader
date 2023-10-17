@@ -1,23 +1,37 @@
-<script lang="ts" setup>
+<script setup lang="ts">
 import Reader from './components/Reader.vue'
 import ChatUI from './components/ChatUI.vue'
-import { ref } from 'vue'
+import { refDebounced } from '@vueuse/core'
+import { ImportBook, OpenEpubDialog } from '../wailsjs/go/main/App'
 
 const selectedText = ref('')
+const debouncedSelectedText = refDebounced(selectedText, 2000)
 const title = ref('')
+const selectedUrl = ref('')
+const isBookOpened = computed(() => selectedUrl.value !== '')
+const bookId = ref('')
+const openBook = async () => {
+  const filePath = await OpenEpubDialog()
+  try {
+    const reponse = await ImportBook(filePath)
+    console.log(reponse)
+  } catch (e) {
+    console.error('Failed to import:', e)
+  }
+}
 </script>
 
 <template>
   <ElConfigProvider>
     <ElContainer :class="$style.container">
       <ElContainer>
-        <ElHeader :class="$style.header">Header</ElHeader>
         <ElMain :class="$style.main">
-          <Reader v-model:selected-text="selectedText" v-model:title="title" />
+          <Reader :key="bookId" :path="selectedUrl" v-model:selected-text="selectedText" />
         </ElMain>
       </ElContainer>
       <ElAside width="400px">
-        <ChatUI :selected-text="selectedText" :title="title" />
+        <ElHeader :class="$style.header"><ElButton @click.prevent="openBook">Open book</ElButton></ElHeader>
+        <ChatUI :selected-text="debouncedSelectedText" :title="title" />
       </ElAside>
     </ElContainer>
   </ElConfigProvider>
@@ -35,6 +49,6 @@ const title = ref('')
   align-items: center
 .main
   width: 100%
-  height: auto
+  height: 100vh
   padding: 0
 </style>

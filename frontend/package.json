@@ -9,12 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@google-ai/generativelanguage": "^1.1.0",
+    "@vueuse/core": "^10.5.0",
     "element-plus": "^2.3.14",
-    "epubjs": "^0.3.93",
-    "google-auth-library": "^9.0.0",
-    "langchain": "^0.0.154",
     "markdown-it": "^13.0.2",
+    "reconnecting-websocket": "^4.4.0",
     "vue": "^3.2.37"
   },
   "devDependencies": {
